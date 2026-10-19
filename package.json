@@ -1,0 +1,25 @@
+{
+  "name": "sermon-sharer",
+  "version": "0.4.0",
+  "description": "Obsidian plugin that renders a shareable hero image from a sermon note.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "sample": "node esbuild.config.mjs harness && node scripts/render-sample.mjs"
+  },
+  "keywords": ["obsidian", "plugin", "sermon"],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.21.0",
+    "obsidian": "latest",
+    "playwright": "^1.45.0",
+    "tslib": "^2.6.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "html-to-image": "^1.11.11"
+  }
+}

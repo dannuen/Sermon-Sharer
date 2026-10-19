@@ -1,0 +1,9 @@
+{
+  "id": "sermon-sharer",
+  "name": "Sermon Sharer",
+  "version": "0.4.0",
+  "minAppVersion": "1.4.0",
+  "description": "Create a beautiful, shareable hero image from a sermon note: title, key verse text, passage, church, date and time.",
+  "author": "Dan",
+  "isDesktopOnly": false
+}

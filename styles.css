@@ -1,0 +1,386 @@
+/* ====== Sermon Sharer: hero-image card =====================================
+   The card is laid out at its real pixel size (1080 wide) and scaled down for
+   preview. Every font size is multiplied by --fit, which layoutCard() lowers
+   until long verses fit. Vietnamese text uses the bundled Playfair Display
+   and Be Vietnam Pro fonts.
+
+   Frosted glass: html-to-image cannot render backdrop-filter, so every
+   .ss-glass panel contains a blurred copy of the background (.ss-glass-bg)
+   that layoutCard() aligns with the real one. */
+
+.ss-stage { position: fixed; left: -100000px; top: 0; pointer-events: none; }
+
+.ss-card {
+  --fit: 1;
+  --pad: 84px;
+  --serif: "Playfair Display", "Noto Serif", Georgia, "Times New Roman", serif;
+  --sans: "Be Vietnam Pro", "Segoe UI", Roboto, Arial, sans-serif;
+  --radius: 44px;
+  --blur: 26px;
+  --glass-blur: 48px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  transform-origin: top left;
+  font-family: var(--sans);
+  color: var(--ss-fg);
+  background: var(--ss-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.ss-card *, .ss-card *::before, .ss-card *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* The card is rendered inside Obsidian, where themes and snippets style headings and
+   paragraphs freely. Everything is a plain div, text starts left-aligned, and no
+   pseudo-element may add content except the ones this stylesheet defines. */
+.ss-card { text-align: left; }
+.ss-card .ss-title::before, .ss-card .ss-title::after,
+.ss-card .ss-verse::before, .ss-card .ss-verse::after,
+.ss-card .ss-eyebrow::before, .ss-card .ss-eyebrow::after { content: none; }
+.ss-card .ss-title, .ss-card .ss-verse, .ss-card .ss-eyebrow, .ss-card .ss-passage, .ss-card .ss-verse-ref {
+  display: block; position: static; float: none; text-indent: 0; text-shadow: none; text-decoration: none;
+  border: 0; background: none; width: auto; max-width: none;
+}
+
+/* ---- background: base gradient + blurred colour blobs ---- */
+.ss-bg { position: absolute; inset: 0; overflow: hidden; }
+.ss-bg-base { position: absolute; inset: 0; background: var(--ss-base); }
+.ss-blobs { position: absolute; inset: 0; }
+.ss-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(var(--blur));
+  width: 60%;
+  aspect-ratio: 1;
+  opacity: 0.9;
+}
+.ss-bg-overlay { position: absolute; inset: 0; background: var(--ss-overlay, none); }
+
+/* ---- glass ---- */
+.ss-glass { position: relative; overflow: hidden; border-radius: var(--radius); isolation: isolate; }
+.ss-glass-bg { position: absolute; inset: auto; filter: blur(var(--glass-blur)) saturate(1.35); transform: scale(1.08); transform-origin: center; }
+.ss-glass-tint { position: absolute; inset: 0; background: var(--ss-glass); border-radius: inherit; }
+.ss-glass-shine {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: inset 0 0 0 1.5px var(--ss-glass-border), inset 0 1px 0 var(--ss-glass-hi);
+  background: linear-gradient(160deg, var(--ss-glass-sheen) 0%, rgba(255,255,255,0) 45%);
+}
+.ss-glass-content { position: relative; }
+
+/* ---- layout ---- */
+.ss-inner {
+  position: absolute; inset: 0; padding: var(--pad);
+  display: flex; flex-direction: column; justify-content: center; gap: calc(28px * var(--fit));
+  overflow: hidden;
+}
+.ss-panel { width: 100%; flex: 0 0 auto; }
+.ss-panel > .ss-glass-content, .ss-panel.ss-plain { padding: calc(64px * var(--fit)) calc(68px * var(--fit)); }
+.ss-panel.ss-plain { padding-left: 0; padding-right: 0; }
+
+.ss-eyebrow {
+  font-weight: 600; font-size: calc(22px * var(--fit)); letter-spacing: 0.34em; text-transform: uppercase;
+  color: var(--ss-accent); margin-bottom: calc(24px * var(--fit));
+}
+.ss-icon {
+  margin-bottom: calc(22px * var(--fit));
+  line-height: 1;
+  color: var(--ss-accent);
+}
+.ss-icon-emoji { font-size: calc(64px * var(--fit)); font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; }
+.ss-icon-lucide svg { width: calc(64px * var(--fit)); height: calc(64px * var(--fit)); stroke-width: 1.5; }
+.ss-center .ss-icon { text-align: center; }
+.ss-center .ss-icon svg { margin: 0 auto; display: block; }
+.ss-title {
+  font-family: var(--serif); font-weight: 700; font-size: calc(78px * var(--fit)); line-height: 1.1;
+  letter-spacing: -0.012em; color: var(--ss-fg); overflow-wrap: anywhere; text-wrap: balance;
+}
+.ss-passage { margin-top: calc(20px * var(--fit)); font-size: calc(28px * var(--fit)); color: var(--ss-muted); }
+
+.ss-body { margin-top: calc(76px * var(--fit)); }
+.ss-quote { position: relative; }
+.ss-quote-mark {
+  position: absolute; left: calc(-6px * var(--fit)); top: calc(-78px * var(--fit));
+  font-family: var(--serif); font-size: calc(170px * var(--fit)); line-height: 1; color: var(--ss-accent); opacity: 0.45;
+}
+.ss-verse {
+  font-family: var(--serif); font-style: italic; font-weight: 400; font-size: calc(46px * var(--fit)); line-height: 1.45;
+  color: var(--ss-fg); overflow-wrap: anywhere; padding-top: calc(10px * var(--fit));
+}
+.ss-verse-ref {
+  margin-top: calc(28px * var(--fit)); font-weight: 600; font-size: calc(28px * var(--fit)); letter-spacing: 0.06em;
+  color: var(--ss-accent);
+}
+.ss-verse-ref::before { content: "— "; }
+.ss-pill { display: inline-block; margin-top: calc(30px * var(--fit)); --radius: 999px; }
+.ss-pill .ss-verse-ref { margin: 0; padding: calc(16px * var(--fit)) calc(30px * var(--fit)); }
+.ss-pill .ss-verse-ref::before { content: ""; }
+
+.ss-foot { margin-top: auto; flex: 0 0 auto; font-size: calc(24px * var(--fit)); line-height: 1.5; color: var(--ss-muted); }
+
+.ss-r-9-16 { --pad: 96px; }
+/* Landscape: wider gutters and a narrower text column. */
+.ss-r-16-9, .ss-r-4-3 { --pad: 110px; }
+.ss-r-16-9 .ss-panel, .ss-r-4-3 .ss-panel { width: 1200px; max-width: 100%; align-self: center; }
+.ss-r-4-3 .ss-panel { width: 1100px; }
+.ss-r-16-9 .ss-panel > .ss-glass-content, .ss-r-4-3 .ss-panel > .ss-glass-content { padding: calc(56px * var(--fit)) calc(64px * var(--fit)); }
+.ss-r-16-9 .ss-body, .ss-r-4-3 .ss-body { margin-top: calc(48px * var(--fit)); }
+.ss-r-16-9 .ss-verse, .ss-r-4-3 .ss-verse { font-size: calc(42px * var(--fit)); }
+.ss-t-golden.ss-r-16-9 .ss-frame, .ss-t-golden.ss-r-4-3 .ss-frame, .ss-t-golden-dark.ss-r-16-9 .ss-frame, .ss-t-golden-dark.ss-r-4-3 .ss-frame { inset: 30px; }
+
+/* ===================== Templates ===================== */
+
+/* Aurora: deep navy mesh with teal, violet and magenta light, frosted panel. */
+.ss-t-aurora {
+  --ss-base: linear-gradient(160deg, #0b1026 0%, #141a3d 50%, #0a0f24 100%);
+  --ss-fg: #f7f7fb; --ss-muted: rgba(247,247,251,0.68); --ss-accent: #9ff0e0;
+  --ss-glass: rgba(255,255,255,0.10); --ss-glass-border: rgba(255,255,255,0.28);
+  --ss-glass-hi: rgba(255,255,255,0.35); --ss-glass-sheen: rgba(255,255,255,0.12);
+  --blur: 120px;
+}
+.ss-t-aurora .ss-blob-1 { background: #19c6b7; width: 70%; left: -20%; top: -22%; opacity: 0.8; }
+.ss-t-aurora .ss-blob-2 { background: #7b4dff; width: 75%; left: 45%; top: 10%; opacity: 0.8; }
+.ss-t-aurora .ss-blob-3 { background: #ff4f9a; width: 60%; left: 10%; top: 60%; opacity: 0.75; }
+.ss-t-aurora .ss-blob-4 { background: #ffb347; width: 40%; left: 70%; top: 72%; opacity: 0.55; }
+
+/* Mist: light pastel field with a white frosted panel and dark type. */
+.ss-t-mist {
+  --ss-base: linear-gradient(170deg, #f2f1f8 0%, #e9eef9 55%, #f6efe8 100%);
+  --ss-fg: #1b1b2b; --ss-muted: rgba(27,27,43,0.62); --ss-accent: #5b4bd6;
+  --ss-glass: rgba(255,255,255,0.46); --ss-glass-border: rgba(255,255,255,0.9);
+  --ss-glass-hi: rgba(255,255,255,1); --ss-glass-sheen: rgba(255,255,255,0.5);
+  --blur: 130px;
+}
+.ss-t-mist .ss-blob-1 { background: #ffb4a2; width: 70%; left: -18%; top: -20%; }
+.ss-t-mist .ss-blob-2 { background: #b8c0ff; width: 75%; left: 45%; top: 0%; }
+.ss-t-mist .ss-blob-3 { background: #a0e7d6; width: 65%; left: 55%; top: 60%; }
+.ss-t-mist .ss-blob-4 { background: #ffd6a5; width: 55%; left: -10%; top: 62%; }
+
+/* Noir: near-black, one warm and one cool glow, type set directly on the dark. */
+.ss-t-noir {
+  --ss-base: radial-gradient(120% 100% at 50% 0%, #17171c 0%, #09090c 100%);
+  --ss-fg: #f4f1ea; --ss-muted: rgba(244,241,234,0.6); --ss-accent: #e8c27a;
+  --ss-glass: rgba(255,255,255,0.08); --ss-glass-border: rgba(255,255,255,0.22);
+  --ss-glass-hi: rgba(255,255,255,0.25); --ss-glass-sheen: rgba(255,255,255,0.08);
+  --blur: 150px;
+}
+.ss-t-noir .ss-blob-1 { background: #d9822b; width: 85%; left: 45%; top: -45%; opacity: 0.55; }
+.ss-t-noir .ss-blob-2 { background: #2b5bd9; width: 80%; left: -45%; top: 60%; opacity: 0.4; }
+.ss-t-noir .ss-title { font-size: calc(92px * var(--fit)); letter-spacing: -0.02em; }
+.ss-t-noir .ss-eyebrow { color: var(--ss-muted); }
+.ss-t-noir .ss-quote-mark { opacity: 0.7; }
+.ss-t-noir .ss-pill .ss-verse-ref { color: var(--ss-fg); }
+
+/* Sunset: coral to indigo gradient, title above a frosted verse panel. */
+.ss-t-sunset {
+  --ss-base: linear-gradient(165deg, #ff8a5c 0%, #e8456f 40%, #6a3fb5 100%);
+  --ss-fg: #ffffff; --ss-muted: rgba(255,255,255,0.78); --ss-accent: #ffe08a;
+  --ss-glass: rgba(255,255,255,0.14); --ss-glass-border: rgba(255,255,255,0.4);
+  --ss-glass-hi: rgba(255,255,255,0.5); --ss-glass-sheen: rgba(255,255,255,0.18);
+  --blur: 130px;
+}
+.ss-t-sunset .ss-blob-1 { background: #ffd166; width: 70%; left: 50%; top: -30%; opacity: 0.85; }
+.ss-t-sunset .ss-blob-2 { background: #ff5e9c; width: 70%; left: -25%; top: 30%; opacity: 0.7; }
+.ss-t-sunset .ss-blob-3 { background: #3a2bd6; width: 80%; left: 35%; top: 65%; opacity: 0.7; }
+.ss-t-sunset .ss-title { font-family: var(--sans); font-weight: 600; letter-spacing: -0.025em; }
+
+/* Pearl: white with iridescent blobs behind a bright glass panel. */
+.ss-t-pearl {
+  --ss-base: #fbfbfd;
+  --ss-fg: #16161d; --ss-muted: rgba(22,22,29,0.58); --ss-accent: #c2185b;
+  --ss-glass: rgba(255,255,255,0.55); --ss-glass-border: rgba(255,255,255,1);
+  --ss-glass-hi: rgba(255,255,255,1); --ss-glass-sheen: rgba(255,255,255,0.6);
+  --blur: 120px; --radius: 56px;
+}
+.ss-t-pearl .ss-blob-1 { background: #ffc6e5; width: 60%; left: -15%; top: -15%; }
+.ss-t-pearl .ss-blob-2 { background: #c6d8ff; width: 65%; left: 50%; top: -10%; }
+.ss-t-pearl .ss-blob-3 { background: #c8f7e6; width: 60%; left: 45%; top: 55%; }
+.ss-t-pearl .ss-blob-4 { background: #fff1b8; width: 55%; left: -10%; top: 55%; }
+.ss-t-pearl .ss-title { font-family: var(--sans); font-weight: 600; letter-spacing: -0.03em; }
+.ss-t-pearl .ss-eyebrow { color: var(--ss-muted); }
+
+/* ====== Modal ============================================================ */
+.ss-modal { width: min(680px, 95vw); }
+/* Phones: full-width modal, stacked rows, preview fitted to the screen. */
+.is-mobile .ss-modal, .is-phone .ss-modal { width: 100%; }
+.is-phone .ss-controls .setting-item { flex-wrap: wrap; }
+.is-phone .ss-controls .setting-item-control { min-width: 0; width: 100%; justify-content: flex-start; margin-top: 6px; }
+.is-phone .ss-controls .setting-item-control select.dropdown { width: 100%; }
+.is-phone .ss-actions { flex-wrap: wrap; }
+.is-phone .ss-actions button { flex: 1 1 45%; }
+/* Controls: one Obsidian setting row per control, stacked, labels in one column and
+   controls right-aligned in another, so they line up in any theme. */
+.ss-controls { display: flex; flex-direction: column; }
+.ss-controls .setting-item { padding: 10px 0; border-top: 1px solid var(--background-modifier-border); }
+.ss-controls .setting-item:first-child { border-top: none; }
+.ss-controls .setting-item-info { flex: 1 1 auto; }
+.ss-controls .setting-item-control { flex: 0 0 auto; min-width: 300px; justify-content: flex-end; }
+.ss-controls .setting-item-control select.dropdown { width: 300px; max-width: 100%; }
+.ss-preview-host { border-top: 1px solid var(--background-modifier-border); margin-top: 4px; padding-top: 16px; }
+.ss-preview-host { display: flex; justify-content: center; padding: 12px 0; min-height: 200px; }
+.ss-preview-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+.ss-preview-frame .ss-card { position: absolute; left: 0; top: 0; }
+.ss-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 8px; }
+.ss-warning {
+  background: var(--background-modifier-error);
+  color: var(--text-on-accent);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: var(--font-ui-small);
+}
+.ss-busy .ss-actions button { opacity: 0.6; pointer-events: none; }
+
+/* ===================== Design-system templates ===================== */
+
+/* Glacial: pale blue-gray ground, one raised frosted panel with a bright rim,
+   slate text, one navy accent. */
+.ss-t-glacial, .ss-t-glacial-dark {
+  --sans: "Inter FFS", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --serif: "Addington CF", "Playfair Display", Georgia, serif;
+  --radius: 36px;                       /* radius-lg (18) at poster scale */
+  --blur: 160px; --glass-blur: 60px;
+}
+.ss-t-glacial {
+  --ss-base: radial-gradient(120% 90% at 50% 40%, #dce8ee 0%, #dce8ee 55%, #b8c6d2 100%); /* bg-workspace → bg-backdrop */
+  --ss-fg: #192337;                      /* ink */
+  --ss-muted: #4e606d;                   /* ink-muted */
+  --ss-accent: #1b2440;                  /* accent */
+  --ss-glass: rgba(248, 251, 253, 0.80); /* bg-raised */
+  --ss-glass-border: rgba(255, 255, 255, 0.6); /* edge-bright */
+  --ss-glass-hi: rgba(255, 255, 255, 0.8);
+  --ss-glass-sheen: rgba(255, 255, 255, 0.35);
+}
+/* Soft gradient discs instead of filter blur: large blur radii band in the exporter. */
+.ss-t-glacial .ss-blob, .ss-t-glacial-dark .ss-blob { filter: none; }
+.ss-t-glacial .ss-blob-1 { background: radial-gradient(closest-side, #ccdfeb, rgba(204,223,235,0)); width: 110%; left: -40%; top: -35%; }   /* bg-selection */
+.ss-t-glacial .ss-blob-2 { background: radial-gradient(closest-side, #a8b6e6, rgba(168,182,230,0)); width: 100%; left: 40%; top: 5%; opacity: 0.5; } /* accent-soft */
+.ss-t-glacial .ss-blob-3 { background: radial-gradient(closest-side, #f3f7fa, rgba(243,247,250,0)); width: 100%; left: -5%; top: 50%; }     /* bg-surface */
+.ss-t-glacial-dark {
+  --ss-base: radial-gradient(120% 90% at 50% 40%, #10151f 0%, #10151f 55%, #0b0f17 100%);
+  --ss-fg: #e4e9f0; --ss-muted: #95a0b0; --ss-accent: #cfdbe6;
+  --ss-glass: rgba(33, 41, 56, 0.82); --ss-glass-border: rgba(255, 255, 255, 0.08);
+  --ss-glass-hi: rgba(255, 255, 255, 0.06); --ss-glass-sheen: rgba(255, 255, 255, 0.03);
+}
+.ss-t-glacial-dark .ss-blob-1 { background: radial-gradient(closest-side, #2c3a4e, rgba(44,58,78,0)); width: 110%; left: -40%; top: -35%; }
+.ss-t-glacial-dark .ss-blob-2 { background: radial-gradient(closest-side, #a8b6e6, rgba(168,182,230,0)); width: 90%; left: 45%; top: 0%; opacity: 0.22; }
+.ss-t-glacial-dark .ss-blob-3 { background: radial-gradient(closest-side, #252e3f, rgba(37,46,63,0)); width: 100%; left: -5%; top: 50%; }
+.ss-t-glacial .ss-panel, .ss-t-glacial-dark .ss-panel {
+  box-shadow: 0 12px 36px rgba(40, 60, 90, 0.12);   /* shadow-panel */
+}
+.ss-t-glacial-dark .ss-panel { box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45); }
+.ss-t-glacial .ss-eyebrow, .ss-t-glacial-dark .ss-eyebrow {
+  color: var(--ss-muted); font-weight: 500; letter-spacing: 0.18em; font-size: calc(22px * var(--fit));
+}
+.ss-t-glacial .ss-title, .ss-t-glacial-dark .ss-title {
+  font-family: var(--sans); font-weight: 500; letter-spacing: -0.01em; font-size: calc(74px * var(--fit)); line-height: 1.15;
+}
+.ss-t-glacial .ss-passage, .ss-t-glacial-dark .ss-passage { font-weight: 500; }
+.ss-t-glacial .ss-verse, .ss-t-glacial-dark .ss-verse { font-size: calc(48px * var(--fit)); line-height: 1.42; }
+.ss-t-glacial .ss-quote-mark, .ss-t-glacial-dark .ss-quote-mark { opacity: 0.35; }
+.ss-card.ss-t-glacial .ss-verse-ref, .ss-card.ss-t-glacial-dark .ss-verse-ref {
+  display: inline-block; font-weight: 500; letter-spacing: 0.02em; font-size: calc(26px * var(--fit));
+  padding: calc(12px * var(--fit)) calc(22px * var(--fit)); border-radius: 12px;           /* radius-xs at scale */
+  background: #cdd8e2; color: #2a3448;                                                   /* bg-badge / ink-badge */
+}
+.ss-t-glacial-dark .ss-verse-ref { background: #2a3345; color: #c9d3e0; }
+.ss-t-glacial .ss-verse-ref::before, .ss-t-glacial-dark .ss-verse-ref::before { content: ""; }
+
+/* Golden: ivory paper, gold as line not fill, double frame, pattern
+   layer (vignette, −45° stripes, concentric rings), centred axis, no radius,
+   no shadow, no blur. One gold-foil line: the title. */
+.ss-t-golden, .ss-t-golden-dark {
+  --cormorant: "Cormorant Garamond", "EB Garamond", Georgia, serif;
+  --garamond: "EB Garamond", "Cormorant Garamond", Georgia, serif;
+  --bevietnam: "Be Vietnam Pro", "Segoe UI", Arial, sans-serif;
+  --ss-base: #FBF8F2;                    /* nen-nga */
+  --ss-fg: #2A2723;                      /* than */
+  --ss-muted: #8B8378;                   /* xam-am */
+  --ss-accent: #94722C;                  /* vang-dam */
+  --gold: #B8934A;                       /* vang-kim */
+  --pad: 120px; --radius: 0;
+  font-family: var(--garamond);
+  font-variant-numeric: lining-nums;
+}
+.ss-t-golden .ss-bg-base, .ss-t-golden-dark .ss-bg-base {
+  background: radial-gradient(72% 72% at 50% 44%, #FDF8EC 0%, #FBF8F2 50%, #EFE4CD 100%); /* nen-giua → nen-nga → nen-bien */
+}
+.ss-t-golden .ss-bg-overlay, .ss-t-golden-dark .ss-bg-overlay {
+  background:
+    repeating-linear-gradient(-45deg, rgba(184,147,74,0.11) 0 1px, transparent 1px 20px),  /* soc: 1.85 % of 1080 ≈ 20 px, 11 % */
+    repeating-radial-gradient(circle at 50% 50%, rgba(184,147,74,0.13) 0 1px, transparent 1px 97px); /* vong: 9 % ≈ 97 px, 13 % */
+  -webkit-mask-image: radial-gradient(farthest-side at 50% 50%, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 55%, #000 100%);
+  mask-image: radial-gradient(farthest-side at 50% 50%, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 55%, #000 100%);
+}
+.ss-t-golden .ss-frame, .ss-t-golden-dark .ss-frame {
+  position: absolute; inset: 34px;                       /* khung-cach-mep on poster */
+  border: 1px solid rgba(184,147,74,0.6);                /* net-khung-ngoai, 60 % */
+  pointer-events: none;
+}
+.ss-t-golden .ss-frame::after, .ss-t-golden-dark .ss-frame::after {
+  content: ""; position: absolute; inset: 10px;          /* khung-khe */
+  border: 1px solid rgba(184,147,74,0.3);                /* net-khung-trong, 30 % */
+}
+.ss-center .ss-inner { align-items: center; text-align: center; }
+.ss-center .ss-title, .ss-center .ss-verse, .ss-center .ss-eyebrow, .ss-center .ss-passage, .ss-center .ss-verse-ref { text-align: center; margin-left: auto; margin-right: auto; }
+.ss-center .ss-panel.ss-plain { padding-left: calc(20px * var(--fit)); padding-right: calc(20px * var(--fit)); }
+.ss-t-golden .ss-eyebrow, .ss-t-golden-dark .ss-eyebrow {
+  font-family: var(--bevietnam); font-weight: 500; font-size: calc(18px * var(--fit)); letter-spacing: 0.3em;
+  color: var(--ss-muted); margin-bottom: calc(40px * var(--fit));                           /* nhan-nho */
+}
+.ss-t-golden .ss-title, .ss-t-golden-dark .ss-title {
+  font-family: var(--cormorant); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: calc(56px * var(--fit)); line-height: 1.2;                                      /* tieu-de-hoa */
+  padding: 0 0.1em;
+  display: inline-block; width: auto;
+  background: linear-gradient(100deg, #9A7830 0%, #D6B96E 30%, #A9853B 55%, #D2B572 80%, #94722C 100%); /* FOIL */
+  -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+}
+.ss-t-golden .ss-passage, .ss-t-golden-dark .ss-passage {
+  margin-top: calc(40px * var(--fit)); font-family: var(--bevietnam); font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.3em; font-size: calc(20px * var(--fit)); color: var(--ss-fg);             /* nhan */
+}
+.ss-t-golden .ss-passage::before, .ss-t-golden-dark .ss-passage::before {
+  content: ""; display: block; width: 76px; height: 1px; background: var(--gold); margin: 0 auto calc(40px * var(--fit)); /* ke-dai */
+}
+.ss-t-golden .ss-body, .ss-t-golden-dark .ss-body { margin-top: calc(64px * var(--fit)); }
+.ss-t-golden .ss-verse, .ss-t-golden-dark .ss-verse {
+  font-family: var(--garamond); font-style: normal; font-weight: 400; font-size: calc(44px * var(--fit)); line-height: 1.5;
+  color: var(--ss-fg); padding: 0;                                                            /* cau-goc */
+}
+.ss-t-golden .ss-verse-ref, .ss-t-golden-dark .ss-verse-ref {
+  font-family: var(--bevietnam); font-weight: 500; text-transform: uppercase; letter-spacing: 0.3em;
+  font-size: calc(18px * var(--fit)); color: var(--ss-accent); margin-top: calc(36px * var(--fit)); /* nhan-nho, vang-dam */
+}
+.ss-t-golden .ss-verse-ref::before, .ss-t-golden-dark .ss-verse-ref::before { content: ""; }
+.ss-t-golden .ss-foot, .ss-t-golden-dark .ss-foot { font-family: var(--bevietnam); text-transform: uppercase; letter-spacing: 0.3em; font-size: calc(17px * var(--fit)); text-align: center; }
+.ss-t-golden.ss-r-9-16 .ss-frame, .ss-t-golden-dark.ss-r-9-16 .ss-frame { inset: 48px; }
+
+/* Golden (dark): the same gold lines, frame, rings and type on a deep warm-brown ground.
+   Ground is the ink colour of the light variant; text turns ivory, labels pale gold. */
+.ss-t-golden-dark {
+  --ss-base: #2A2723;
+  --ss-fg: #FBF8F2;
+  --ss-muted: #B5A892;
+  --ss-accent: #D6B96E;
+  --gold: #C9A75A;
+}
+.ss-t-golden-dark .ss-bg-base {
+  background: radial-gradient(72% 72% at 50% 44%, #3A3530 0%, #2A2723 50%, #1B1917 100%);
+}
+.ss-t-golden-dark .ss-bg-overlay {
+  background:
+    repeating-linear-gradient(-45deg, rgba(201,167,90,0.16) 0 1px, transparent 1px 20px),
+    repeating-radial-gradient(circle at 50% 50%, rgba(201,167,90,0.18) 0 1px, transparent 1px 97px);
+}
+.ss-t-golden-dark .ss-frame { border-color: rgba(201,167,90,0.7); }
+.ss-t-golden-dark .ss-frame::after { border-color: rgba(201,167,90,0.35); }
+.ss-t-golden-dark .ss-title {
+  background: linear-gradient(100deg, #B8964F 0%, #EBD48F 30%, #C9A75A 55%, #E6CB82 80%, #B08A3C 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+}
+.ss-t-golden-dark .ss-passage { color: var(--ss-fg); }
+.ss-t-golden-dark .ss-verse-ref { color: var(--ss-accent); }
